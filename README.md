@@ -9,7 +9,15 @@ Recognizing pedestrian attributes on RAP(V2) via pytorch, copy from 'https://git
 
 相关文章：A Richly Annotated Dataset for Pedestrian Attribute Recognition, ACPR 2015; A Richly Annotated Pedestrian Dataset for Person Retrieval in Real Surveillance Scenario, TIP 2018
 
-1.数据集RAP(V2)
+
+
+先给出原本github上数据集peta_relase的训练结果：
+
+![result_of_peta](/Users/momo/Documents/Pedestrian_Attribute_Recognition/result_of_peta.png)
+
+
+
+1.数据集RAP
 
 （1）下载主页：http://www.rapdataset.com/ RAP共有41,585个行人样本，每个样本都带有72个属性，数据下载后有数据集文件夹RAP_dataset和数据集注释文件夹RAP_annotation。
 
@@ -39,21 +47,157 @@ The "hs", "ub" and "lb" in attribute_eng mean head-shoulder, upperbody and lower
 
 2.数据集预处理生成文件索引
 
-下载的repository中有好几个dataset文件夹，先将下载好的数据集放在与script同目录下的dataset/rap文件夹当中（不同数据集放入该dataset不同的文件夹中，如原repository中的peta_release数据集放到peta文件夹中），在当前目录下执行：
+下载的repository中有好几个dataset文件夹，先将下载好的数据集放在与script同目录下的dataset/rap文件夹当中（不同数据集放入该dataset不同的文件夹中，如原repository中的peta_release数据集放到peta文件夹中），在当前目录下执行下面语句，生成数据集划分索引和数据集标签索引分别于/pedestrian-attribute-recognition-pytorch/dataset/rap/rap_partition.pkl(rap_dataset.pkl)：
 
 ```shell
 python script/dataset/transform_rap.py
 ```
 
+transform_rap.py:
 
+```python
+import os
+import numpy as np
+import random
+import cPickle as pickle
+from scipy.io import loadmat
+
+np.random.seed(0)
+random.seed(0)
+
+def make_dir(path):
+    if os.path.exists(path):
+        pass
+    else:
+        os.mkdir(path)
+
+def generate_data_description(save_dir):
+    """
+    create a dataset description file, which consists of images, labels
+    """
+    dataset = dict()
+    dataset['description'] = 'rap'
+    dataset['root'] = './dataset/rap/RAP_dataset/'
+    dataset['image'] = []
+    dataset['att'] = []
+    dataset['att_name'] = []
+    dataset['selected_attribute'] = range(51)
+    # load Rap_annotation.mat
+    data = loadmat(open('./dataset/rap/RAP_annotation/RAP_annotation.mat', 'r'))
+    for idx in range(51):
+        dataset['att_name'].append(data['RAP_annotation'][0][0][6][idx][0][0])
+
+    for idx in range(41585):
+        dataset['image'].append(data['RAP_annotation'][0][0][5][idx][0][0])
+        dataset['att'].append(data['RAP_annotation'][0][0][1][idx, :].tolist())
+
+    with open(os.path.join(save_dir, 'rap_dataset.pkl'), 'w+') as f:
+        pickle.dump(dataset, f)
+
+def create_trainvaltest_split(traintest_split_file):
+    """
+    create a dataset split file, which consists of index of the train/val/test splits
+    """
+    partition = dict()
+    partition['trainval'] = []
+    partition['test'] = []
+    partition['weight_trainval'] = []
+    # load RAP_annotation.mat
+    data = loadmat(open('./dataset/rap/RAP_annotation/RAP_annotation.mat', 'r'))
+    for idx in range(5):
+        trainval = (data['RAP_annotation'][0][0][0][idx][0][0][0][0][0,:]-1).tolist()
+        test = (data['RAP_annotation'][0][0][0][idx][0][0][0][1][0,:]-1).tolist()
+        partition['trainval'].append(trainval)
+        partition['test'].append(test)
+        # weight
+        weight_trainval = np.mean(data['RAP_annotation'][0][0][1][trainval, :].astype('float32')==1, axis=0).tolist()
+        partition['weight_trainval'].append(weight_trainval)
+    with open(traintest_split_file, 'w+') as f:
+        pickle.dump(partition, f)
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="rap dataset")
+    parser.add_argument(
+        '--save_dir',
+        type=str,
+        default='./dataset/rap/')
+    parser.add_argument(
+        '--traintest_split_file',
+        type=str,
+        default="./dataset/rap/rap_partition.pkl")
+    args = parser.parse_args()
+    save_dir = args.save_dir
+    traintest_split_file = args.traintest_split_file
+
+    generate_data_description(save_dir)
+    create_trainvaltest_split(traintest_split_file)
+```
+
+代码测试：
+
+（1）dataset['att_name']，输出51个名字最短的属性
+
+```python
+print dataset['att_name']
+```
+
+[u'Female', u'AgeLess16', u'Age17-30', u'Age31-45', u'BodyFat', u'BodyNormal', u'BodyThin', u'Customer', u'Clerk', u'BaldHead', u'LongHair', u'BlackHair', u'Hat', u'Glasses', u'Muffler', u'Shirt', u'Sweater', u'Vest', u'TShirt', u'Cotton', u'Jacket', u'Suit-Up', u'Tight', u'ShortSleeve', u'LongTrousers', u'Skirt', u'ShortSkirt', u'Dress', u'Jeans', u'TightTrousers', u'LeatherShoes', u'SportShoes', u'Boots', u'ClothShoes', u'CasualShoes', u'Backpack', u'SSBag', u'HandBag', u'Box', u'PlasticBag', u'PaperBag', u'HandTrunk', u'OtherAttchment', u'Calling', u'Talking', u'Gathering', u'Holding', u'Pusing', u'Pulling', u'CarryingbyArm', u'CarryingbyHand']
+
+
+
+（2）dataset['image']，输出41585个图片文件的名字
+
+```python
+print dataset['image']
+```
+
+......u'CAM01_2014-02-15_20140215161032-20140215162620_tarid139_frame8486_line1.png', u'CAM01_2014-02-15_20140215161032-20140215162620_tarid136_frame8181_line1.png', u'CAM01_2014-02-15_20140215161032-20140215162620_tarid135_frame8121_line1.png', u'CAM01_2014-02-15_20140215161032-20140215162620_tarid128_frame7794_line1.png', u'CAM01_2014-02-15_20140215161032-20140215162620_tarid124_frame7735_line1.png', u'CAM01_2014-02-15_20140215161032-20140215162620_tarid123_frame7362_line1.png', u'CAM01_2014-02-15_20140215161032-20140215162620_tarid119_frame6898_line1.png', u'CAM01_2014-02-15_20140215161032-20140215162620_tarid109_frame6614_line1.png', u'CAM01_2014-02-15_20140215161032-20140215162620_tarid104_frame6583_line1.png', u'CAM01_2014-02-15_20140215161032-20140215162620_tarid101_frame6541_line1.png', u'CAM01_2014-02-15_20140215161032-20140215162620_tarid0_frame218_line1.png']
+
+（3）dataset['att']，输出41585样本的92个属性标签信息，0-1标签
+
+```python
+print dataset['att']
+```
+
+......[1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0]]
+
+（4）dataset信息存入rap_dataset.pkl中
+
+```python
+with open(os.path.join(save_dir, 'rap_dataset.pkl'), 'w+') as f:
+        pickle.dump(dataset, f)
+```
+
+
+
+（5）trainval和test，划分的训练集和测试集的序号
+
+（6）partition['trainval']和partition['test']，不同划分下（5次随机划分）训练集与测试集序号
 
 
 
 3.训练
 
+```shell
+sh script/experiment/train.sh
+```
+
+根据需要修改train.sh中的参数即可，代码实际上就是用ResNet-50做了多类别分类。
+
 
 
 4.测试
 
+```shell
+sh script/experiment/test.sh
+```
 
+
+
+5.Demo
+
+```shell
+python script/experiment/demo.py
+```
 
