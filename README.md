@@ -19,7 +19,7 @@ Recognizing pedestrian attributes on RAP(V2) via pytorch, copy from 'https://git
 
 1.数据集RAP
 
-（1）下载主页：http://www.rapdataset.com/ RAP共有41,585个行人样本，每个样本都带有72个属性，数据下载后有数据集文件夹RAP_dataset和数据集注释文件夹RAP_annotation。
+（1）下载主页：http://www.rapdataset.com/ RAP共有41,585个行人样本，每个样本都带有91个属性，数据下载后有数据集文件夹RAP_dataset和数据集注释文件夹RAP_annotation。
 
 （2）RAP_dataset中存放数据集，每个样本是一个行人，如下：
 
