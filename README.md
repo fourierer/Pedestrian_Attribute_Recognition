@@ -13,9 +13,9 @@ Recognizing pedestrian attributes on RAP(V2) via pytorch, copy from 'https://git
 
 先给出原本github上数据集peta_relase的训练结果：
 
-![result_of_peta](/Users/momo/Documents/Pedestrian_Attribute_Recognition/result_of_peta.png)
 
 
+![peta](/Users/momo/Documents/Pedestrian_Attribute_Recognition/peta.PNG)
 
 1.数据集RAP
 
@@ -185,6 +185,10 @@ sh script/experiment/train.sh
 
 根据需要修改train.sh中的参数即可，代码实际上就是用ResNet-50做了多类别分类。
 
+训练结果：
+
+![rap](/Users/momo/Documents/Pedestrian_Attribute_Recognition/rap.PNG)
+
 
 
 4.测试
@@ -192,6 +196,10 @@ sh script/experiment/train.sh
 ```shell
 sh script/experiment/test.sh
 ```
+
+测试结果：
+
+![rap_test](/Users/momo/Documents/Pedestrian_Attribute_Recognition/rap_test.PNG)
 
 
 
@@ -201,3 +209,14 @@ sh script/experiment/test.sh
 python script/experiment/demo.py
 ```
 
+输出：
+
+![rap_demo](/Users/momo/Documents/Pedestrian_Attribute_Recognition/rap_demo.PNG)
+
+
+
+展示结果：
+
+![demo_image](/Users/momo/Documents/Pedestrian_Attribute_Recognition/demo_image.png)
+
+![demo_image_result](/Users/momo/Documents/Pedestrian_Attribute_Recognition/demo_image_result.png)

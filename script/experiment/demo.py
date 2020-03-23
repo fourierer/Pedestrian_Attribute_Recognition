@@ -13,6 +13,8 @@ import time
 import argparse
 from PIL import Image, ImageFont, ImageDraw
 
+import sys
+sys.path.append(os.getcwd())
 from baseline.model.DeepMAR import DeepMAR_ResNet50
 from baseline.utils.utils import str2bool
 from baseline.utils.utils import save_ckpt, load_ckpt
@@ -25,7 +27,7 @@ class Config(object):
     def __init__(self):
         
         parser = argparse.ArgumentParser()
-        parser.add_argument('-d', '--sys_device_ids', type=eval, default=(0,))
+        parser.add_argument('-d', '--sys_device_ids', type=eval, default=(0,1,))
         parser.add_argument('--set_seed', type=str2bool, default=False)
         # model
         parser.add_argument('--resize', type=eval, default=(224, 224))
@@ -33,11 +35,11 @@ class Config(object):
         # demo image
         parser.add_argument('--demo_image', type=str, default='./dataset/demo/demo_image.png')
         ## dataset parameter
-        parser.add_argument('--dataset', type=str, default='peta',
+        parser.add_argument('--dataset', type=str, default='rap',
                 choices=['peta','rap', 'pa100k'])
         # utils
         parser.add_argument('--load_model_weight', type=str2bool, default=True)
-        parser.add_argument('--model_weight_file', type=str, default='./exp/deepmar_resnet50/peta/partition0/run1/model/ckpt_epoch150.pth')
+        parser.add_argument('--model_weight_file', type=str, default='./exp/deepmar_resnet50/rap/partition0/run1/model/ckpt_epoch150.pth')
         args = parser.parse_args()
         
         # gpu ids
